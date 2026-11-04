@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MBG Racing - Gran Max Perkebunan Interactive Live</title>
+  <title>MBG Racing - Portrait HP Mode (9:16)</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -23,38 +23,37 @@
     }
 
     body {
-      background-color: var(--bg-dark);
+      background-color: #020617;
       color: var(--text-light);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 10px;
-      overflow: hidden;
     }
 
-    .main-container {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 12px;
+    /* Container Utama Mode Portrait (HP Layout) */
+    .mobile-container {
+      display: flex;
+      flex-direction: column;
       width: 100%;
-      max-width: 1350px;
-      aspect-ratio: 16 / 9;
+      max-width: 450px;
+      height: 92vh;
+      max-height: 900px;
       background: var(--card-bg);
-      padding: 12px;
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-      border: 1px solid #334155;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      border: 2px solid #334155;
     }
 
+    /* Area Game Canvas (9:16 Screen Ratio) */
     .game-section {
       position: relative;
       width: 100%;
-      height: 100%;
-      background-color: #0284c7;
-      border-radius: 12px;
+      flex: 1;
+      background-color: #38bdf8;
       overflow: hidden;
-      border: 2px solid #334155;
     }
 
     canvas {
@@ -63,47 +62,36 @@
       display: block;
     }
 
-    .sidebar {
+    /* Dashboard Kontrol Bawah HP */
+    .controls-section {
+      background: #0f172a;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      height: 100%;
-      overflow-y: auto;
-    }
-
-    .card {
-      background: #0f172a;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #334155;
-    }
-
-    .card h3 {
-      font-size: 0.85rem;
-      color: #94a3b8;
-      margin-bottom: 8px;
-      text-transform: uppercase;
+      border-top: 2px solid #334155;
     }
 
     .input-group {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 8px;
+      gap: 8px;
+      align-items: center;
     }
 
     .input-group label {
       font-size: 0.75rem;
-      color: #cbd5e1;
+      color: #94a3b8;
+      white-space: nowrap;
     }
 
     input[type="text"] {
+      flex: 1;
       background: #1e293b;
       border: 1px solid #475569;
-      padding: 8px;
+      padding: 6px 10px;
       border-radius: 6px;
       color: #fff;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .btn {
@@ -111,14 +99,14 @@
       color: white;
       border: none;
       padding: 8px 10px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       transition: all 0.2s;
     }
 
@@ -144,57 +132,45 @@
     }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal {
-      background: var(--card-bg); width: 90%; max-width: 600px;
-      max-height: 85vh; overflow-y: auto; border-radius: 12px; padding: 18px;
+      background: var(--card-bg); width: 90%; max-width: 400px;
+      max-height: 85vh; overflow-y: auto; border-radius: 12px; padding: 16px;
     }
-    .asset-uploader-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .asset-uploader-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .asset-item { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px dashed #475569; }
     .asset-item label { font-size: 0.75rem; color: #cbd5e1; display: block; margin-bottom: 4px; }
-    .preview-box { width: 100%; height: 50px; background: #1e293b; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .preview-box { width: 100%; height: 45px; background: #1e293b; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
   </style>
 </head>
 <body>
 
-  <div class="main-container">
+  <div class="mobile-container">
+    <!-- Area Canvas Utama Game (Tampilan Layar HP) -->
     <div class="game-section">
       <canvas id="gameCanvas"></canvas>
     </div>
 
-    <div class="sidebar">
-      <div class="card">
-        <h3>Pengaturan Gambar Game</h3>
-        <button class="btn btn-green" id="openAssetModal" style="width: 100%;">
-          📁 Upload Aset Gambar Kustom
+    <!-- Panel Kontrol TikTok Gift Bawah -->
+    <div class="controls-section">
+      <div class="input-group">
+        <label>Viewer:</label>
+        <input type="text" id="viewerName" value="Penonton_TikTok" placeholder="Nama viewer...">
+        <button class="btn btn-green" id="openAssetModal">📁 Upload Aset</button>
+      </div>
+
+      <div class="gift-grid">
+        <button class="btn btn-pink" onclick="triggerGift('rose')">
+          🌹 Angkot Push
         </button>
-      </div>
-
-      <div class="card">
-        <h3>Simulasi Gift TikTok</h3>
-        <div class="input-group">
-          <label>Nama Viewer</label>
-          <input type="text" id="viewerName" value="Penonton_Aktif" placeholder="Nama penonton...">
-        </div>
-
-        <div class="gift-grid">
-          <button class="btn btn-pink" onclick="triggerGift('rose')">
-            🌹 Angkot Mendorong
-          </button>
-          <button class="btn btn-red" onclick="triggerGift('meteor')">
-            ☄️ Hantaman Meteor
-          </button>
-          <button class="btn btn-orange" onclick="triggerGift('truck')">
-            🚚 Truk Sound Horeg
-          </button>
-          <button class="btn btn-blue" onclick="triggerGift('hero')">
-            🦸 Bantuan Karakter
-          </button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Jarak Tempuh</h3>
-        <p id="distMeter" style="font-size: 1.1rem; font-weight: bold; color: #38bdf8;">0 m / 30.000 m</p>
+        <button class="btn btn-red" onclick="triggerGift('meteor')">
+          ☄️ Meteor Api
+        </button>
+        <button class="btn btn-orange" onclick="triggerGift('truck')">
+          🚚 Truk Sound
+        </button>
+        <button class="btn btn-blue" onclick="triggerGift('hero')">
+          🦸 Luffy / Boost
+        </button>
       </div>
     </div>
   </div>
@@ -202,18 +178,18 @@
   <!-- Modal Asset Manager -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <h2 style="font-size: 1.1rem; margin-bottom: 12px;">Upload Aset Gambar Kustom</h2>
+      <h2 style="font-size: 1rem; margin-bottom: 10px;">Upload Aset Gambar Kustom</h2>
       <div class="asset-uploader-grid">
-        <div class="asset-item"><label>1. Bodi Gran Max (PNG)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'carBody')"><div class="preview-box"><img id="prev_carBody"></div></div>
-        <div class="asset-item"><label>2. Roda Mobil (PNG)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'wheel')"><div class="preview-box"><img id="prev_wheel"></div></div>
+        <div class="asset-item"><label>1. Bodi Gran Max (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'carBody')"><div class="preview-box"><img id="prev_carBody"></div></div>
+        <div class="asset-item"><label>2. Roda Mobil (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'wheel')"><div class="preview-box"><img id="prev_wheel"></div></div>
         <div class="asset-item"><label>3. Latar Perkebunan</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'background')"><div class="preview-box"><img id="prev_background"></div></div>
-        <div class="asset-item"><label>4. Mobil Angkot/Pendorong</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'angkot')"><div class="preview-box"><img id="prev_angkot"></div></div>
+        <div class="asset-item"><label>4. Mobil Angkot</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'angkot')"><div class="preview-box"><img id="prev_angkot"></div></div>
         <div class="asset-item"><label>5. Meteor Api (PNG)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'meteor')"><div class="preview-box"><img id="prev_meteor"></div></div>
-        <div class="asset-item"><label>6. Truk Sound/Kopdes</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'truck')"><div class="preview-box"><img id="prev_truck"></div></div>
+        <div class="asset-item"><label>6. Truk Sound Horeg</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'truck')"><div class="preview-box"><img id="prev_truck"></div></div>
       </div>
-      <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 8px;">
+      <div style="margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px;">
         <button class="btn btn-red" onclick="clearAssets()">Reset</button>
-        <button class="btn btn-green" id="closeAssetModal">Selesai</button>
+        <button class="btn btn-green" id="closeAssetModal">Simpan</button>
       </div>
     </div>
   </div>
@@ -266,10 +242,9 @@
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
-    // --- MATH & TERRAIN GENERATOR (Jalanan Naik Turun) ---
+    // --- TERRAIN MATH GENERATOR ---
     function getTerrainHeight(x) {
-      // Kombinasi fungsi sinus untuk menghasilkan gelombang perbukitan
-      return Math.sin(x * 0.003) * 60 + Math.sin(x * 0.008) * 30 + (canvas.height - 130);
+      return Math.sin(x * 0.003) * 50 + Math.sin(x * 0.008) * 20 + (canvas.height - 130);
     }
 
     function getTerrainAngle(x) {
@@ -281,13 +256,14 @@
 
     // Game Physics State
     let distance = 0;
-    let worldX = 200;
-    let carSpeed = 3;
+    let worldX = 150;
+    let carSpeed = 3.5;
     let carY = 0;
     let carAngle = 0;
     let verticalVelocity = 0;
 
     let activeEvents = [];
+    let particles = [];
     let bannerText = '';
     let bannerTimer = 0;
 
@@ -295,62 +271,80 @@
       const user = document.getElementById('viewerName').value || 'Penonton';
       
       if (type === 'rose') {
-        bannerText = `🌹 ${user} mengirim Angkot Mendorong Mundur!`;
-        activeEvents.push({ type: 'angkot', x: worldX + 500, speed: -6 });
+        bannerText = `🌹 ${user} mengirim Angkot Push!`;
+        activeEvents.push({ type: 'angkot', x: worldX + 350, speed: -6 });
       } else if (type === 'meteor') {
         bannerText = `☄️ ${user} menjatuhkan Meteor Api!`;
-        activeEvents.push({ type: 'meteor', x: worldX + 100, y: -100, targetY: getTerrainHeight(worldX) });
+        activeEvents.push({ type: 'meteor', x: worldX + 80, y: -80, targetY: getTerrainHeight(worldX) });
       } else if (type === 'truck') {
-        bannerText = `🚚 ${user} membantu dengan Truk Sound Horeg!`;
-        activeEvents.push({ type: 'truck', x: worldX - 300, speed: 7 });
+        bannerText = `🚚 ${user} membantu dengan Truk Sound!`;
+        activeEvents.push({ type: 'truck', x: worldX - 250, speed: 7.5 });
       } else if (type === 'hero') {
-        bannerText = `🦸 ${user} mengirim Bantuan Karakter!`;
-        carSpeed = 10;
-        setTimeout(() => carSpeed = 3, 2000);
+        bannerText = `🦸 ${user} memanggil Luffy / Boost!`;
+        carSpeed = 9.5;
+        setTimeout(() => carSpeed = 3.5, 2000);
       }
       bannerTimer = 180;
     }
 
+    function createExplosion(x, y) {
+      for (let i = 0; i < 18; i++) {
+        particles.push({
+          x: x, y: y,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          size: Math.random() * 6 + 3,
+          life: 25,
+          color: Math.random() > 0.5 ? '#f97316' : '#ef4444'
+        });
+      }
+    }
+
     function update() {
-      // Update Posisi Mobil
       worldX += carSpeed;
       distance = Math.floor(worldX);
-      document.getElementById('distMeter').innerText = `${distance} m / 30.000 m`;
 
-      // Kalkulasi Ketinggian & Sudut Jalanan di Bawah Mobil
       const targetY = getTerrainHeight(worldX);
       const targetAngle = getTerrainAngle(worldX);
 
-      // Dampak Suspensi / Gravitasi Mobil
-      carY += (targetY - carY) * 0.2 + verticalVelocity;
-      carAngle += (targetAngle - carAngle) * 0.2;
+      carY += (targetY - carY) * 0.25 + verticalVelocity;
+      carAngle += (targetAngle - carAngle) * 0.25;
       verticalVelocity *= 0.8;
 
-      // Event Logic
+      // Update Events
       activeEvents.forEach((ev, i) => {
         if (ev.type === 'angkot') {
           ev.x += ev.speed;
-          if (Math.abs(ev.x - worldX) < 80) {
-            carSpeed = -2; // Tabrakan terdorong mundur
-            setTimeout(() => carSpeed = 3, 1500);
+          if (Math.abs(ev.x - worldX) < 60) {
+            carSpeed = -2;
+            setTimeout(() => carSpeed = 3.5, 1400);
           }
         } else if (ev.type === 'meteor') {
-          ev.y += 12;
+          ev.y += 14;
           if (ev.y >= ev.targetY - 20) {
-            if (Math.abs(ev.x - worldX) < 120) {
-              verticalVelocity = -15; // Terpental ke atas saat Kena Meteor
+            createExplosion(120, carY - 15);
+            if (Math.abs(ev.x - worldX) < 100) {
+              verticalVelocity = -15;
               carSpeed = 0;
-              setTimeout(() => carSpeed = 3, 1000);
+              setTimeout(() => carSpeed = 3.5, 1200);
             }
             activeEvents.splice(i, 1);
           }
         } else if (ev.type === 'truck') {
           ev.x += ev.speed;
-          if (ev.x >= worldX - 80 && ev.x <= worldX) {
-            carSpeed = 7; // Pendorong dari belakang
-            setTimeout(() => carSpeed = 3, 1200);
+          if (ev.x >= worldX - 60 && ev.x <= worldX) {
+            carSpeed = 7.5;
+            setTimeout(() => carSpeed = 3.5, 1200);
           }
         }
+      });
+
+      // Update Particles
+      particles.forEach((p, i) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0) particles.splice(i, 1);
       });
 
       if (bannerTimer > 0) bannerTimer--;
@@ -359,61 +353,92 @@
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Render Background (Perkebunan)
+      // 1. Sky & Background (Perkebunan + Gunung)
       if (assets.background.complete && assets.background.src) {
-        const bgOffset = -(worldX * 0.2) % canvas.width;
+        const bgOffset = -(worldX * 0.15) % canvas.width;
         ctx.drawImage(assets.background, bgOffset, 0, canvas.width, canvas.height);
         ctx.drawImage(assets.background, bgOffset + canvas.width, 0, canvas.width, canvas.height);
+      } else {
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        skyGrad.addColorStop(0, '#0284c7');
+        skyGrad.addColorStop(0.6, '#7dd3fc');
+        skyGrad.addColorStop(1, '#bae6fd');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Gunung Belakang
+        ctx.fillStyle = '#1e3a8a';
+        ctx.beginPath();
+        ctx.moveTo(-50, canvas.height - 120);
+        ctx.lineTo(canvas.width * 0.5, canvas.height - 300);
+        ctx.lineTo(canvas.width + 50, canvas.height - 120);
+        ctx.fill();
       }
 
-      // 2. Render Jalanan Bergelombang (Perbukitan)
+      // 2. Render Jalan Bergelombang (Tanah & Rumput)
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
-      for (let screenX = 0; screenX <= canvas.width; screenX += 10) {
-        const actualWorldX = worldX - 200 + screenX;
+      for (let screenX = 0; screenX <= canvas.width; screenX += 6) {
+        const actualWorldX = worldX - 120 + screenX;
         const h = getTerrainHeight(actualWorldX);
         ctx.lineTo(screenX, h);
       }
       ctx.lineTo(canvas.width, canvas.height);
-      ctx.fillStyle = '#15803d'; // Warna Rumput Perkebunan
+
+      ctx.fillStyle = '#78350f';
       ctx.fill();
+
+      ctx.strokeStyle = '#15803d';
+      ctx.lineWidth = 10;
+      ctx.stroke();
       ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 3;
       ctx.stroke();
 
-      // 3. Render Gran Max Van & Roda
-      const screenCarX = 200;
+      // 3. Top Meter Bar (Desain MBG Racing HP)
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(15, 15, canvas.width - 30, 36);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(15, 15, canvas.width - 30, 36);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🏁 ${distance} m / 30.000 m`, canvas.width / 2, 38);
+      ctx.textAlign = 'left';
+
+      // 4. Render Gran Max Van & Roda
+      const screenCarX = 120;
       ctx.save();
-      ctx.translate(screenCarX, carY - 25);
+      ctx.translate(screenCarX, carY - 20);
       ctx.rotate(carAngle);
 
       if (assets.carBody.complete && assets.carBody.src) {
-        ctx.drawImage(assets.carBody, -70, -40, 140, 70);
+        ctx.drawImage(assets.carBody, -55, -30, 110, 55);
       } else {
         ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(-70, -35, 140, 60);
+        ctx.fillRect(-55, -28, 110, 50);
         ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText('SATUAN GIZI', -40, -10);
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText('SATUAN GIZI', -40, -5);
       }
 
-      // Render Roda Berputar
-      const wheelSpin = worldX * 0.1;
-      drawWheel(-45, 20, 16, wheelSpin);
-      drawWheel(45, 20, 16, wheelSpin);
+      const wheelSpin = worldX * 0.12;
+      drawWheel(-35, 16, 13, wheelSpin);
+      drawWheel(35, 16, 13, wheelSpin);
       ctx.restore();
 
-      // 4. Render Active Events
+      // 5. Render Active Gift Events
       activeEvents.forEach(ev => {
-        const screenEvX = ev.x - worldX + 200;
+        const screenEvX = ev.x - worldX + 120;
         const evY = getTerrainHeight(ev.x);
 
         if (ev.type === 'angkot') {
           if (assets.angkot.complete && assets.angkot.src) {
-            ctx.drawImage(assets.angkot, screenEvX - 50, evY - 50, 100, 50);
+            ctx.drawImage(assets.angkot, screenEvX - 40, evY - 40, 80, 40);
           } else {
             ctx.fillStyle = '#eab308';
-            ctx.fillRect(screenEvX - 40, evY - 40, 80, 40);
+            ctx.fillRect(screenEvX - 35, evY - 35, 70, 35);
           }
         } else if (ev.type === 'meteor') {
           if (assets.meteor.complete && assets.meteor.src) {
@@ -421,29 +446,37 @@
           } else {
             ctx.fillStyle = '#ef4444';
             ctx.beginPath();
-            ctx.arc(screenEvX, ev.y, 25, 0, Math.PI * 2);
+            ctx.arc(screenEvX, ev.y, 20, 0, Math.PI * 2);
             ctx.fill();
           }
         } else if (ev.type === 'truck') {
           if (assets.truck.complete && assets.truck.src) {
-            ctx.drawImage(assets.truck, screenEvX - 60, evY - 60, 120, 60);
+            ctx.drawImage(assets.truck, screenEvX - 45, evY - 45, 90, 45);
           } else {
-            ctx.fillStyle = '#64748b';
-            ctx.fillRect(screenEvX - 50, evY - 50, 100, 50);
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(screenEvX - 40, evY - 40, 80, 40);
           }
         }
       });
 
-      // 5. Render Banner Notifikasi Live Gift
+      // Render Explosions
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 6. Gift Banner TikTok
       if (bannerTimer > 0) {
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-        ctx.fillRect(20, 20, 380, 42);
+        ctx.fillRect(15, 60, canvas.width - 30, 36);
         ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(20, 20, 380, 42);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(15, 60, canvas.width - 30, 36);
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 14px sans-serif';
-        ctx.fillText(bannerText, 32, 46);
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(bannerText, 25, 83);
       }
     }
 
@@ -459,7 +492,7 @@
         ctx.arc(0, 0, radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
       }
       ctx.restore();
