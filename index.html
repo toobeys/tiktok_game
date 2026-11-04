@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MBG Racing - Portrait HP Mode (9:16)</title>
+  <title>MBG Racing - Perkebunan Sawit Interactive Live</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -32,7 +32,7 @@
       padding: 10px;
     }
 
-    /* Container Utama Mode Portrait (HP Layout) */
+    /* Container Utama Mode HP Portrait (9:16) */
     .mobile-container {
       display: flex;
       flex-direction: column;
@@ -47,12 +47,12 @@
       border: 2px solid #334155;
     }
 
-    /* Area Game Canvas (9:16 Screen Ratio) */
+    /* Area Game Canvas */
     .game-section {
       position: relative;
       width: 100%;
       flex: 1;
-      background-color: #38bdf8;
+      background-color: #0284c7;
       overflow: hidden;
     }
 
@@ -62,7 +62,7 @@
       display: block;
     }
 
-    /* Dashboard Kontrol Bawah HP */
+    /* Dashboard Kontrol Bawah */
     .controls-section {
       background: #0f172a;
       padding: 12px;
@@ -122,7 +122,7 @@
       gap: 6px;
     }
 
-    /* Modal Styling */
+    /* Modal Asset Uploader */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -145,12 +145,10 @@
 <body>
 
   <div class="mobile-container">
-    <!-- Area Canvas Utama Game (Tampilan Layar HP) -->
     <div class="game-section">
       <canvas id="gameCanvas"></canvas>
     </div>
 
-    <!-- Panel Kontrol TikTok Gift Bawah -->
     <div class="controls-section">
       <div class="input-group">
         <label>Viewer:</label>
@@ -182,7 +180,7 @@
       <div class="asset-uploader-grid">
         <div class="asset-item"><label>1. Bodi Gran Max (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'carBody')"><div class="preview-box"><img id="prev_carBody"></div></div>
         <div class="asset-item"><label>2. Roda Mobil (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'wheel')"><div class="preview-box"><img id="prev_wheel"></div></div>
-        <div class="asset-item"><label>3. Latar Perkebunan</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'background')"><div class="preview-box"><img id="prev_background"></div></div>
+        <div class="asset-item"><label>3. Latar Perkebunan Sawit</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'background')"><div class="preview-box"><img id="prev_background"></div></div>
         <div class="asset-item"><label>4. Mobil Angkot</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'angkot')"><div class="preview-box"><img id="prev_angkot"></div></div>
         <div class="asset-item"><label>5. Meteor Api (PNG)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'meteor')"><div class="preview-box"><img id="prev_meteor"></div></div>
         <div class="asset-item"><label>6. Truk Sound Horeg</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'truck')"><div class="preview-box"><img id="prev_truck"></div></div>
@@ -206,7 +204,6 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // Assets Loader
     const assets = {
       carBody: new Image(), wheel: new Image(), background: new Image(),
       angkot: new Image(), meteor: new Image(), truck: new Image()
@@ -242,9 +239,9 @@
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
-    // --- TERRAIN MATH GENERATOR ---
+    // TERRAIN MATH GENERATOR
     function getTerrainHeight(x) {
-      return Math.sin(x * 0.003) * 50 + Math.sin(x * 0.008) * 20 + (canvas.height - 130);
+      return Math.sin(x * 0.003) * 45 + Math.sin(x * 0.008) * 20 + (canvas.height - 120);
     }
 
     function getTerrainAngle(x) {
@@ -254,7 +251,7 @@
       return Math.atan2(y2 - y1, dx * 2);
     }
 
-    // Game Physics State
+    // Game State
     let distance = 0;
     let worldX = 150;
     let carSpeed = 3.5;
@@ -350,18 +347,75 @@
       if (bannerTimer > 0) bannerTimer--;
     }
 
+    // DRAW PALM TREE PROCEDURAL (Pohon Sawit)
+    function drawPalmTree(x, y, scale = 1) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      // Batang Sawit
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.moveTo(-8, 0);
+      ctx.lineTo(-5, -80);
+      ctx.lineTo(5, -80);
+      ctx.lineTo(8, 0);
+      ctx.fill();
+
+      // Tekstur Batang
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 1.5;
+      for (let i = -70; i < 0; i += 10) {
+        ctx.beginPath();
+        ctx.moveTo(-6, i);
+        ctx.lineTo(6, i + 4);
+        ctx.stroke();
+      }
+
+      // Daun-daun Sawit (Pelepah Sawit)
+      ctx.save();
+      ctx.translate(0, -80);
+      ctx.strokeStyle = '#15803d';
+      ctx.lineWidth = 4;
+      
+      const angles = [-2.2, -1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8, 2.2];
+      angles.forEach(ang => {
+        ctx.save();
+        ctx.rotate(ang);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(25, -20, 50, -10);
+        ctx.stroke();
+        
+        // Helai Daun
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        for (let d = 10; d < 45; d += 6) {
+          ctx.beginPath();
+          ctx.moveTo(d, -10);
+          ctx.lineTo(d + 3, 5);
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+      ctx.restore();
+
+      ctx.restore();
+    }
+
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Sky & Background (Perkebunan + Gunung)
+      // 1. Sky & Background (Perkebunan Sawit)
       if (assets.background.complete && assets.background.src) {
         const bgOffset = -(worldX * 0.15) % canvas.width;
         ctx.drawImage(assets.background, bgOffset, 0, canvas.width, canvas.height);
         ctx.drawImage(assets.background, bgOffset + canvas.width, 0, canvas.width, canvas.height);
       } else {
+        // Fallback Latar Belakang Perkebunan Sawit
         const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         skyGrad.addColorStop(0, '#0284c7');
-        skyGrad.addColorStop(0.6, '#7dd3fc');
+        skyGrad.addColorStop(0.5, '#38bdf8');
         skyGrad.addColorStop(1, '#bae6fd');
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -369,13 +423,23 @@
         // Gunung Belakang
         ctx.fillStyle = '#1e3a8a';
         ctx.beginPath();
-        ctx.moveTo(-50, canvas.height - 120);
-        ctx.lineTo(canvas.width * 0.5, canvas.height - 300);
-        ctx.lineTo(canvas.width + 50, canvas.height - 120);
+        ctx.moveTo(-50, canvas.height - 100);
+        ctx.lineTo(canvas.width * 0.5, canvas.height - 280);
+        ctx.lineTo(canvas.width + 50, canvas.height - 100);
         ctx.fill();
+
+        // Deretan Pohon Sawit di Latar Belakang (Jauh)
+        const sawitSpacing = 160;
+        const startIdx = Math.floor((worldX - 200) / sawitSpacing);
+        for (let i = startIdx - 1; i < startIdx + 5; i++) {
+          const treeWorldX = i * sawitSpacing;
+          const screenTreeX = treeWorldX - (worldX * 0.6) + 120;
+          const treeY = getTerrainHeight(treeWorldX) - 5;
+          drawPalmTree(screenTreeX, treeY, 0.7);
+        }
       }
 
-      // 2. Render Jalan Bergelombang (Tanah & Rumput)
+      // 2. Render Jalan Bergelombang (Tanah Kebun & Rumput)
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
       for (let screenX = 0; screenX <= canvas.width; screenX += 6) {
@@ -385,9 +449,11 @@
       }
       ctx.lineTo(canvas.width, canvas.height);
 
-      ctx.fillStyle = '#78350f';
+      // Tekstur Tanah Kebun Sawit Cokelat
+      ctx.fillStyle = '#542d10';
       ctx.fill();
 
+      // Lapisan Rumput Kebun
       ctx.strokeStyle = '#15803d';
       ctx.lineWidth = 10;
       ctx.stroke();
@@ -395,7 +461,16 @@
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // 3. Top Meter Bar (Desain MBG Racing HP)
+      // 3. Pohon Sawit di Sisi Depan Jalan
+      const frontSawitSpacing = 220;
+      const frontStartIdx = Math.floor(worldX / frontSawitSpacing);
+      for (let i = frontStartIdx - 1; i < frontStartIdx + 4; i++) {
+        const treeX = (i * frontSawitSpacing) - worldX + 120;
+        const treeY = getTerrainHeight(i * frontSawitSpacing);
+        drawPalmTree(treeX, treeY, 0.95);
+      }
+
+      // 4. Top Meter Bar (Desain MBG Racing HP)
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.fillRect(15, 15, canvas.width - 30, 36);
       ctx.strokeStyle = '#e2e8f0';
@@ -407,7 +482,7 @@
       ctx.fillText(`🏁 ${distance} m / 30.000 m`, canvas.width / 2, 38);
       ctx.textAlign = 'left';
 
-      // 4. Render Gran Max Van & Roda
+      // 5. Render Gran Max Van & Roda
       const screenCarX = 120;
       ctx.save();
       ctx.translate(screenCarX, carY - 20);
@@ -419,8 +494,9 @@
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(-55, -28, 110, 50);
         ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 9px sans-serif';
-        ctx.fillText('SATUAN GIZI', -40, -5);
+        ctx.font = 'bold 8px sans-serif';
+        ctx.fillText('SATUAN PELAYANAN', -48, -10);
+        ctx.fillText('PEMENUHAN GIZI', -48, 2);
       }
 
       const wheelSpin = worldX * 0.12;
@@ -428,7 +504,7 @@
       drawWheel(35, 16, 13, wheelSpin);
       ctx.restore();
 
-      // 5. Render Active Gift Events
+      // 6. Active Gift Events Render
       activeEvents.forEach(ev => {
         const screenEvX = ev.x - worldX + 120;
         const evY = getTerrainHeight(ev.x);
@@ -467,7 +543,7 @@
         ctx.fill();
       });
 
-      // 6. Gift Banner TikTok
+      // 7. Gift Banner TikTok
       if (bannerTimer > 0) {
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
         ctx.fillRect(15, 60, canvas.width - 30, 36);
