@@ -181,9 +181,10 @@
         <div class="asset-item"><label>1. Bodi Gran Max (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'carBody')"><div class="preview-box"><img id="prev_carBody"></div></div>
         <div class="asset-item"><label>2. Roda Mobil (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'wheel')"><div class="preview-box"><img id="prev_wheel"></div></div>
         <div class="asset-item"><label>3. Latar Perkebunan Sawit</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'background')"><div class="preview-box"><img id="prev_background"></div></div>
-        <div class="asset-item"><label>4. Mobil Angkot</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'angkot')"><div class="preview-box"><img id="prev_angkot"></div></div>
-        <div class="asset-item"><label>5. Meteor Api (PNG)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'meteor')"><div class="preview-box"><img id="prev_meteor"></div></div>
-        <div class="asset-item"><label>6. Truk Sound Horeg</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'truck')"><div class="preview-box"><img id="prev_truck"></div></div>
+        <div class="asset-item"><label>4. Tekstur Tanah 3D (Ground Asset)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'ground')"><div class="preview-box"><img id="prev_ground"></div></div>
+        <div class="asset-item"><label>5. Mobil Angkot</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'angkot')"><div class="preview-box"><img id="prev_angkot"></div></div>
+        <div class="asset-item"><label>6. Meteor Api (PNG)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'meteor')"><div class="preview-box"><img id="prev_meteor"></div></div>
+        <div class="asset-item"><label>7. Truk Sound Horeg</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'truck')"><div class="preview-box"><img id="prev_truck"></div></div>
       </div>
       <div style="margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px;">
         <button class="btn btn-red" onclick="clearAssets()">Reset</button>
@@ -206,8 +207,10 @@
 
     const assets = {
       carBody: new Image(), wheel: new Image(), background: new Image(),
-      angkot: new Image(), meteor: new Image(), truck: new Image()
+      ground: new Image(), angkot: new Image(), meteor: new Image(), truck: new Image()
     };
+
+    let groundPattern = null;
 
     function loadSavedAssets() {
       const saved = JSON.parse(localStorage.getItem('mbg_racing_assets') || '{}');
@@ -215,6 +218,11 @@
         if (saved[key]) {
           assets[key].src = saved[key];
           document.getElementById(`prev_${key}`).src = saved[key];
+          if (key === 'ground') {
+            assets[key].onload = () => {
+              groundPattern = ctx.createPattern(assets.ground, 'repeat');
+            };
+          }
         }
       });
     }
@@ -229,6 +237,12 @@
           const saved = JSON.parse(localStorage.getItem('mbg_racing_assets') || '{}');
           saved[key] = evt.target.result;
           localStorage.setItem('mbg_racing_assets', JSON.stringify(saved));
+          
+          if (key === 'ground') {
+            assets.ground.onload = () => {
+              groundPattern = ctx.createPattern(assets.ground, 'repeat');
+            };
+          }
         };
         reader.readAsDataURL(file);
       }
@@ -236,12 +250,13 @@
 
     function clearAssets() {
       localStorage.removeItem('mbg_racing_assets');
+      groundPattern = null;
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
     // TERRAIN MATH GENERATOR
     function getTerrainHeight(x) {
-      return Math.sin(x * 0.003) * 45 + Math.sin(x * 0.008) * 20 + (canvas.height - 120);
+      return Math.sin(x * 0.003) * 45 + Math.sin(x * 0.008) * 20 + (canvas.height - 130);
     }
 
     function getTerrainAngle(x) {
@@ -347,13 +362,12 @@
       if (bannerTimer > 0) bannerTimer--;
     }
 
-    // DRAW PALM TREE PROCEDURAL (Pohon Sawit)
+    // DRAW PALM TREE PROCEDURAL
     function drawPalmTree(x, y, scale = 1) {
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(scale, scale);
 
-      // Batang Sawit
       ctx.fillStyle = '#78350f';
       ctx.beginPath();
       ctx.moveTo(-8, 0);
@@ -362,7 +376,6 @@
       ctx.lineTo(8, 0);
       ctx.fill();
 
-      // Tekstur Batang
       ctx.strokeStyle = '#451a03';
       ctx.lineWidth = 1.5;
       for (let i = -70; i < 0; i += 10) {
@@ -372,7 +385,6 @@
         ctx.stroke();
       }
 
-      // Daun-daun Sawit (Pelepah Sawit)
       ctx.save();
       ctx.translate(0, -80);
       ctx.strokeStyle = '#15803d';
@@ -387,7 +399,6 @@
         ctx.quadraticCurveTo(25, -20, 50, -10);
         ctx.stroke();
         
-        // Helai Daun
         ctx.strokeStyle = '#22c55e';
         ctx.lineWidth = 2;
         for (let d = 10; d < 45; d += 6) {
@@ -412,7 +423,6 @@
         ctx.drawImage(assets.background, bgOffset, 0, canvas.width, canvas.height);
         ctx.drawImage(assets.background, bgOffset + canvas.width, 0, canvas.width, canvas.height);
       } else {
-        // Fallback Latar Belakang Perkebunan Sawit
         const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         skyGrad.addColorStop(0, '#0284c7');
         skyGrad.addColorStop(0.5, '#38bdf8');
@@ -420,7 +430,6 @@
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Gunung Belakang
         ctx.fillStyle = '#1e3a8a';
         ctx.beginPath();
         ctx.moveTo(-50, canvas.height - 100);
@@ -428,7 +437,6 @@
         ctx.lineTo(canvas.width + 50, canvas.height - 100);
         ctx.fill();
 
-        // Deretan Pohon Sawit di Latar Belakang (Jauh)
         const sawitSpacing = 160;
         const startIdx = Math.floor((worldX - 200) / sawitSpacing);
         for (let i = startIdx - 1; i < startIdx + 5; i++) {
@@ -439,7 +447,7 @@
         }
       }
 
-      // 2. Render Jalan Bergelombang (Tanah Kebun & Rumput)
+      // 2. Render Jalan Bergelombang dengan TEKSTUR TANAH 3D
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
       for (let screenX = 0; screenX <= canvas.width; screenX += 6) {
@@ -449,11 +457,25 @@
       }
       ctx.lineTo(canvas.width, canvas.height);
 
-      // Tekstur Tanah Kebun Sawit Cokelat
-      ctx.fillStyle = '#542d10';
+      ctx.save();
+      if (assets.ground.complete && assets.ground.src) {
+        // Efek parallax scrolling pada tekstur tanah
+        const groundOffsetX = -(worldX % assets.ground.width);
+        ctx.translate(groundOffsetX, 0);
+        if (!groundPattern) groundPattern = ctx.createPattern(assets.ground, 'repeat');
+        ctx.fillStyle = groundPattern;
+      } else {
+        // Fallback Gradasi Tanah Cokelat Batu
+        const dirtGrad = ctx.createLinearGradient(0, canvas.height - 200, 0, canvas.height);
+        dirtGrad.addColorStop(0, '#542d10');
+        dirtGrad.addColorStop(0.5, '#3b1d07');
+        dirtGrad.addColorStop(1, '#241002');
+        ctx.fillStyle = dirtGrad;
+      }
       ctx.fill();
+      ctx.restore();
 
-      // Lapisan Rumput Kebun
+      // Lapisan Rumput Di Atas Tanah
       ctx.strokeStyle = '#15803d';
       ctx.lineWidth = 10;
       ctx.stroke();
@@ -461,7 +483,7 @@
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // 3. Pohon Sawit di Sisi Depan Jalan
+      // 3. Pohon Sawit di Depan
       const frontSawitSpacing = 220;
       const frontStartIdx = Math.floor(worldX / frontSawitSpacing);
       for (let i = frontStartIdx - 1; i < frontStartIdx + 4; i++) {
@@ -470,7 +492,7 @@
         drawPalmTree(treeX, treeY, 0.95);
       }
 
-      // 4. Top Meter Bar (Desain MBG Racing HP)
+      // 4. Top Meter Bar
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.fillRect(15, 15, canvas.width - 30, 36);
       ctx.strokeStyle = '#e2e8f0';
@@ -504,7 +526,7 @@
       drawWheel(35, 16, 13, wheelSpin);
       ctx.restore();
 
-      // 6. Active Gift Events Render
+      // 6. Active Gift Events
       activeEvents.forEach(ev => {
         const screenEvX = ev.x - worldX + 120;
         const evY = getTerrainHeight(ev.x);
