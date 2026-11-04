@@ -421,6 +421,20 @@
       ctx.fillStyle = '#2a1a0c'; ctx.fillRect(sx - 5, y - 20, 10, 20);
     }
 
+    // Isi area di bawah gambar dengan batuan (bukan warna polos) memakai bagian bawah gambar yang dipantulkan
+    function stoneFill(img, sc, u, sw, sx, yTop) {
+      const nh = img.naturalHeight, nw = img.naturalWidth, sh = Math.floor(nh * 0.12);
+      if (!img._fill || img._fillSrc !== img.src) {
+        const cv = document.createElement('canvas'); cv.width = nw; cv.height = sh * 2;
+        const g = cv.getContext('2d');
+        g.save(); g.translate(0, sh); g.scale(1, -1); g.drawImage(img, 0, nh - sh, nw, sh, 0, 0, nw, sh); g.restore();
+        g.drawImage(img, 0, nh - sh, nw, sh, 0, sh, nw, sh);
+        img._fill = cv; img._fillSrc = img.src;
+      }
+      const th = sh * 2 * sc;
+      for (let yy = yTop - 1; yy < canvas.height; yy += th) ctx.drawImage(img._fill, u, 0, sw, sh * 2, sx, yy, sw * sc + 0.5, th + 1);
+    }
+
     function drawGround() {
       const T = THEMES[theme], W = canvas.width, H = canvas.height, off = worldX - 120, img = assets.bgForeground;
 
@@ -431,7 +445,7 @@
           const y = surfY(sx + off) - c0 * lh;
           let u = ((((sx + worldX) % lw) + lw) % lw) / sc, sw = 3 / sc;
           if (u + sw > img.naturalWidth) sw = img.naturalWidth - u;
-          if (y + lh < H) { ctx.fillStyle = '#454c57'; ctx.fillRect(sx, y + lh - 1, 3, H - (y + lh) + 2); }
+          if (y + lh < H) stoneFill(img, sc, u, sw, sx, y + lh);
           ctx.drawImage(img, u, 0, sw, img.naturalHeight, sx, y, sw * sc + 0.5, lh);
         }
         return;
