@@ -261,14 +261,13 @@
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
-    // --- RUMUS KETINGGIAN JALAN DISESUAIKAN DENGAN GAMBAR GABUNGAN ---
+    // --- GELOMBANG LEBIH EKSTREM & PANJANG (DISESUAIKAN DENGAN POSISI MOBIL) ---
     function getTerrainHeight(x) {
-      // Menggunakan gelombang sinus yang diselaraskan dengan posisi jalur jalan di gambar gabungan
       const layerHeight = canvas.height * 0.7;
       const layerY = canvas.height - layerHeight;
-      // Jalur jalan terletak di sekitar 42% dari atas gambar gabungan
       const roadBaseline = layerY + (layerHeight * 0.42);
-      return Math.sin(x * 0.0035) * 30 + Math.sin(x * 0.009) * 12 + roadBaseline;
+      // Frekuensi diperpanjang (0.0015 & 0.004) dan amplitudo dibuat lebih ekstrem (65 & 25)
+      return Math.sin(x * 0.0015) * 65 + Math.sin(x * 0.004) * 25 + roadBaseline;
     }
 
     function getTerrainAngle(x) {
@@ -404,7 +403,7 @@
         const layerWidth = layerHeight * imgRatio;
         const layerY = canvas.height - layerHeight;
         
-        const fgOffset = -(worldX * 1.0) % layerWidth; // Kecepatan sinkron dengan pergerakan dunia game
+        const fgOffset = -(worldX * 1.0) % layerWidth;
 
         for (let x = fgOffset - layerWidth; x < canvas.width + layerWidth; x += layerWidth) {
           ctx.drawImage(assets.bgForeground, x, layerY, layerWidth, layerHeight);
@@ -426,10 +425,11 @@
       ctx.fillText(`🏁 ${distance} m / 30.000 m`, canvas.width / 2, 38);
       ctx.textAlign = 'left';
 
-      // Render Mobil & Roda (Pas di atas permukaan jalan gambar gabungan)
+      // Render Mobil & Roda (Posisi Y diturunkan agar pas menapak di atas jalan gambar)
       const screenCarX = 120;
       ctx.save();
-      ctx.translate(screenCarX, carY - 22);
+      // Penyesuaian offset vertikal agar ban pas di garis jalan gabungan
+      ctx.translate(screenCarX, carY - 6);
       ctx.rotate(carAngle);
 
       if (assets.carBody.complete && assets.carBody.src) {
