@@ -181,7 +181,7 @@
         <div class="asset-item"><label>1. Bodi Gran Max (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'carBody')"><div class="preview-box"><img id="prev_carBody"></div></div>
         <div class="asset-item"><label>2. Roda Mobil (PNG Transparan)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'wheel')"><div class="preview-box"><img id="prev_wheel"></div></div>
         <div class="asset-item"><label>3. Latar Perkebunan Sawit</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'background')"><div class="preview-box"><img id="prev_background"></div></div>
-        <div class="asset-item"><label>4. Tekstur Tanah 3D (Ground Asset)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'ground')"><div class="preview-box"><img id="prev_ground"></div></div>
+        <div class="asset-item"><label>4. Tekstur Tanah Perbukitan (Seamless)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'ground')"><div class="preview-box"><img id="prev_ground"></div></div>
         <div class="asset-item"><label>5. Mobil Angkot</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'angkot')"><div class="preview-box"><img id="prev_angkot"></div></div>
         <div class="asset-item"><label>6. Meteor Api (PNG)</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'meteor')"><div class="preview-box"><img id="prev_meteor"></div></div>
         <div class="asset-item"><label>7. Truk Sound Horeg</label><input type="file" accept="image/*" onchange="uploadAsset(event, 'truck')"><div class="preview-box"><img id="prev_truck"></div></div>
@@ -447,41 +447,44 @@
         }
       }
 
-      // 2. Render Jalan Bergelombang dengan TEKSTUR TANAH 3D
+      // 2. Render Jalan Bergelombang dengan TEKSTUR TANAH PERBUKITAN
+      ctx.save();
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
-      for (let screenX = 0; screenX <= canvas.width; screenX += 6) {
+      for (let screenX = 0; screenX <= canvas.width; screenX += 4) {
         const actualWorldX = worldX - 120 + screenX;
         const h = getTerrainHeight(actualWorldX);
         ctx.lineTo(screenX, h);
       }
       ctx.lineTo(canvas.width, canvas.height);
 
-      ctx.save();
       if (assets.ground.complete && assets.ground.src) {
-        // Efek parallax scrolling pada tekstur tanah
+        // Render tekstur tanah mengikuti pergerakan van (scrolling halus)
         const groundOffsetX = -(worldX % assets.ground.width);
+        ctx.save();
         ctx.translate(groundOffsetX, 0);
         if (!groundPattern) groundPattern = ctx.createPattern(assets.ground, 'repeat');
         ctx.fillStyle = groundPattern;
+        ctx.fill();
+        ctx.restore();
       } else {
-        // Fallback Gradasi Tanah Cokelat Batu
+        // Fallback Gradasi Cokelat Tanah Kebun
         const dirtGrad = ctx.createLinearGradient(0, canvas.height - 200, 0, canvas.height);
         dirtGrad.addColorStop(0, '#542d10');
         dirtGrad.addColorStop(0.5, '#3b1d07');
         dirtGrad.addColorStop(1, '#241002');
         ctx.fillStyle = dirtGrad;
+        ctx.fill();
       }
-      ctx.fill();
-      ctx.restore();
 
-      // Lapisan Rumput Di Atas Tanah
+      // Lapisan Garis Rumput Hijau di Atas Permukaan Jalan
       ctx.strokeStyle = '#15803d';
-      ctx.lineWidth = 10;
+      ctx.lineWidth = 8;
       ctx.stroke();
       ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
+      ctx.restore();
 
       // 3. Pohon Sawit di Depan
       const frontSawitSpacing = 220;
