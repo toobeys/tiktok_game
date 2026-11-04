@@ -172,7 +172,7 @@
           <div class="preview-box"><img id="prev_bgFar"></div>
         </div>
         <div class="asset-item">
-          <label>2. Layer Depan (Gabungan Sawit + Jalan + Tanah PNG)</label>
+          <label>2. Layer Gabungan (Sawit + Jalan + Tanah)</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'bgForeground')">
           <div class="preview-box"><img id="prev_bgForeground"></div>
         </div>
@@ -261,9 +261,14 @@
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
-    // TERRAIN MATH GENERATOR (Untuk kalkulasi pergerakan & suspensi mobil)
+    // --- RUMUS KETINGGIAN JALAN DISESUAIKAN DENGAN GAMBAR GABUNGAN ---
     function getTerrainHeight(x) {
-      return Math.sin(x * 0.003) * 45 + Math.sin(x * 0.008) * 20 + (canvas.height - 130);
+      // Menggunakan gelombang sinus yang diselaraskan dengan posisi jalur jalan di gambar gabungan
+      const layerHeight = canvas.height * 0.7;
+      const layerY = canvas.height - layerHeight;
+      // Jalur jalan terletak di sekitar 42% dari atas gambar gabungan
+      const roadBaseline = layerY + (layerHeight * 0.42);
+      return Math.sin(x * 0.0035) * 30 + Math.sin(x * 0.009) * 12 + roadBaseline;
     }
 
     function getTerrainAngle(x) {
@@ -326,8 +331,8 @@
       const targetY = getTerrainHeight(worldX);
       const targetAngle = getTerrainAngle(worldX);
 
-      carY += (targetY - carY) * 0.25 + verticalVelocity;
-      carAngle += (targetAngle - carAngle) * 0.25;
+      carY += (targetY - carY) * 0.3 + verticalVelocity;
+      carAngle += (targetAngle - carAngle) * 0.3;
       verticalVelocity *= 0.8;
 
       activeEvents.forEach((ev, i) => {
@@ -392,20 +397,19 @@
         ctx.fill();
       }
 
-      // --- LAYER 2: Gabungan Sawit + Jalan + Medan Tanah (Seamless Loop) ---
+      // --- LAYER 2: Gambar Gabungan (Sawit + Jalan + Tanah) ---
       if (assets.bgForeground.complete && assets.bgForeground.src) {
         const imgRatio = assets.bgForeground.width / assets.bgForeground.height;
-        const layerHeight = canvas.height * 0.7; // Tinggi layer 70% canvas
+        const layerHeight = canvas.height * 0.7;
         const layerWidth = layerHeight * imgRatio;
-        const layerY = canvas.height - layerHeight; // Nempel di bagian bawah canvas
+        const layerY = canvas.height - layerHeight;
         
-        const fgOffset = -(worldX * 0.8) % layerWidth;
+        const fgOffset = -(worldX * 1.0) % layerWidth; // Kecepatan sinkron dengan pergerakan dunia game
 
         for (let x = fgOffset - layerWidth; x < canvas.width + layerWidth; x += layerWidth) {
           ctx.drawImage(assets.bgForeground, x, layerY, layerWidth, layerHeight);
         }
       } else {
-        // Fallback jika belum upload gambar gabungan
         ctx.fillStyle = '#542d10';
         ctx.fillRect(0, canvas.height - 150, canvas.width, 150);
       }
@@ -422,10 +426,10 @@
       ctx.fillText(`🏁 ${distance} m / 30.000 m`, canvas.width / 2, 38);
       ctx.textAlign = 'left';
 
-      // Render Mobil & Roda
+      // Render Mobil & Roda (Pas di atas permukaan jalan gambar gabungan)
       const screenCarX = 120;
       ctx.save();
-      ctx.translate(screenCarX, carY - 20);
+      ctx.translate(screenCarX, carY - 22);
       ctx.rotate(carAngle);
 
       if (assets.carBody.complete && assets.carBody.src) {
