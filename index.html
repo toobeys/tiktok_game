@@ -152,6 +152,11 @@
         <button class="btn btn-green" id="openAssetModal">📁 Upload Aset</button>
       </div>
 
+      <div class="input-group">
+        <label>Tema Jalan:</label>
+        <select id="themeSelect" onchange="setTheme(this.value)" style="flex:1;padding:8px;border-radius:8px;background:#1e293b;color:#fff;border:1px solid #334155;"></select>
+      </div>
+
       <div class="gift-grid">
         <button class="btn btn-pink" onclick="triggerGift('rose')">🌹 Angkot Push</button>
         <button class="btn btn-red" onclick="triggerGift('meteor')">☄️ Meteor Api</button>
@@ -261,21 +266,10 @@
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
-    // --- JALUR JALAN MENGIKUTI GAMBAR LAYER 2 (layer2_sawit_jalan.png) ---
-    // Angka di bawah = bentuk jalan di gambar (dalam pecahan tinggi gambar).
-    // Gambar & kode harus kembar; kalau ganti gambar, angka ini ikut diganti.
-    const ROAD = { c0: 0.62996, a1: 0.05952, a2: 0.01984, phi: 1.2, ratio: 3.4384, wheelDrop: 23 };
-
+    // --- JALUR EKSTREM (bukit tinggi & curam) ---
     function getTerrainHeight(x) {
-      const layerHeight = canvas.height * 0.7;
-      const layerY = canvas.height - layerHeight;
-      const img = assets.bgForeground;
-      const ratio = (img.complete && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : ROAD.ratio;
-      const layerWidth = layerHeight * ratio;
-      // +120 = posisi layar mobil, supaya sejajar dengan gambar yang di-scroll
-      const t = ((x + 120) / layerWidth) * Math.PI * 2;
-      const f = ROAD.c0 + ROAD.a1 * Math.sin(t) + ROAD.a2 * Math.sin(2 * t + ROAD.phi);
-      return layerY + layerHeight * f - ROAD.wheelDrop;
+      const k = canvas.height / 700;
+      return canvas.height * 0.58 + (Math.sin(x * 0.0016) * 115 + Math.sin(x * 0.0043 + 1) * 52 + Math.sin(x * 0.0095 + 2) * 16) * k;
     }
 
     function getTerrainAngle(x) {
@@ -379,6 +373,97 @@
       if (bannerTimer > 0) bannerTimer--;
     }
 
+    // --- TEMA JALAN ---
+    const THEMES = {
+      sawit: { name: '🌴 Sawit (pakai gambar layer 2)', img: true, deco: 'palm', grass: '#4caf2a', road: '#c8a26a', soil: ['#7a4a22', '#4a2a14'], leaf: '#2f7d32' },
+      hutan: { name: '🌲 Hutan Pinus', deco: 'pine', grass: '#3f8f2f', road: '#b08d57', soil: ['#6b4a2b', '#3a2616'], leaf: '#1f5e2e' },
+      sawah: { name: '🌾 Sawah Desa', deco: 'rice', grass: '#8bc34a', road: '#d2b27a', soil: ['#8a5a2b', '#5d3b1c'], leaf: '#6fb02a' },
+      gurun: { name: '🏜️ Gurun', deco: 'cactus', grass: '#e0b25a', road: '#f1d9a0', soil: ['#c98a3d', '#8a5524'], leaf: '#3d8b4a' },
+      salju: { name: '❄️ Salju', deco: 'snow', grass: '#f1f5f9', road: '#cbd5e1', soil: ['#94a3b8', '#475569'], leaf: '#166534' }
+    };
+    let theme = localStorage.getItem('mbg_theme') || 'sawit';
+    if (!THEMES[theme]) theme = 'sawit';
+    const themeSel = document.getElementById('themeSelect');
+    Object.keys(THEMES).forEach(k => themeSel.add(new Option(THEMES[k].name, k)));
+    themeSel.value = theme;
+    function setTheme(v) { theme = v; localStorage.setItem('mbg_theme', v); }
+
+    const surfY = wx => getTerrainHeight(wx) + 23;
+    const hash = n => { const v = Math.sin(n * 127.1) * 43758.5453; return v - Math.floor(v); };
+
+    function drawDeco(T, sx, y, r) {
+      const sc = 0.8 + r * 0.7;
+      ctx.save(); ctx.translate(sx, y + 4); ctx.scale(sc, sc);
+      if (T.deco === 'pine' || T.deco === 'snow') {
+        ctx.fillStyle = '#5b3a1e'; ctx.fillRect(-4, -26, 8, 28);
+        for (let i = 0; i < 3; i++) {
+          ctx.fillStyle = T.leaf; ctx.beginPath();
+          ctx.moveTo(0, -95 + i * 20); ctx.lineTo(-30 + i * 4, -30 - (2 - i) * 8 + i * 6); ctx.lineTo(30 - i * 4, -30 - (2 - i) * 8 + i * 6); ctx.fill();
+          if (T.deco === 'snow') { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(0, -95 + i * 20); ctx.lineTo(-12, -70 + i * 20); ctx.lineTo(12, -70 + i * 20); ctx.fill(); }
+        }
+      } else if (T.deco === 'palm') {
+        ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(8, -50, 0, -100); ctx.stroke();
+        ctx.strokeStyle = T.leaf; ctx.lineWidth = 4;
+        for (let i = 0; i < 7; i++) { const an = -Math.PI / 2 + (i - 3) * 0.55; ctx.beginPath(); ctx.moveTo(0, -100); ctx.quadraticCurveTo(Math.cos(an) * 30, -100 + Math.sin(an) * 30 - 10, Math.cos(an) * 52, -100 + Math.sin(an) * 40 + 22); ctx.stroke(); }
+        ctx.fillStyle = '#c2410c'; ctx.beginPath(); ctx.arc(-4, -96, 4, 0, 7); ctx.arc(5, -94, 4, 0, 7); ctx.fill();
+      } else if (T.deco === 'rice') {
+        ctx.strokeStyle = T.leaf; ctx.lineWidth = 3;
+        for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(i * 5, 0); ctx.lineTo(i * 6, -22 - (i % 2) * 6); ctx.stroke(); }
+      } else {
+        ctx.fillStyle = T.leaf; ctx.fillRect(-5, -50, 10, 52); ctx.fillRect(-18, -34, 7, 5); ctx.fillRect(-18, -42, 5, 13); ctx.fillRect(11, -28, 7, 5); ctx.fillRect(13, -38, 5, 15);
+      }
+      ctx.restore();
+    }
+
+    function drawHut(sx, y) {
+      ctx.fillStyle = '#7c5a36'; ctx.fillRect(sx - 22, y - 30, 44, 30);
+      ctx.fillStyle = '#d6b76b'; ctx.beginPath(); ctx.moveTo(sx - 30, y - 30); ctx.lineTo(sx, y - 56); ctx.lineTo(sx + 30, y - 30); ctx.fill();
+      ctx.fillStyle = '#2a1a0c'; ctx.fillRect(sx - 5, y - 20, 10, 20);
+    }
+
+    function drawGround() {
+      const T = THEMES[theme], W = canvas.width, H = canvas.height, off = worldX - 120, img = assets.bgForeground;
+
+      // Mode gambar: gambar layer 2 (versi DATAR) dibengkokkan mengikuti jalur
+      if (T.img && img.complete && img.naturalHeight) {
+        const lh = H * 0.7, sc = lh / img.naturalHeight, lw = img.naturalWidth * sc, c0 = 0.62996;
+        for (let sx = 0; sx < W + 3; sx += 3) {
+          const y = surfY(sx + off) - c0 * lh;
+          let u = ((((sx + worldX) % lw) + lw) % lw) / sc, sw = 3 / sc;
+          if (u + sw > img.naturalWidth) sw = img.naturalWidth - u;
+          if (y + lh < H) { ctx.fillStyle = '#454c57'; ctx.fillRect(sx, y + lh - 1, 3, H - (y + lh) + 2); }
+          ctx.drawImage(img, u, 0, sw, img.naturalHeight, sx, y, sw * sc + 0.5, lh);
+        }
+        return;
+      }
+
+      // Mode gambar-prosedural: pohon/rumah dulu, lalu tanah di depannya
+      const c0 = Math.floor((off - 80) / 90), c1 = Math.floor((off + W + 80) / 90);
+      for (let i = c0; i <= c1; i++) {
+        const r = hash(i + 7), wx = i * 90 + r * 50, sx = wx - off;
+        if (r > 0.9) drawHut(sx, surfY(wx)); else if (r > 0.25) drawDeco(T, sx, surfY(wx), hash(i * 3.1));
+      }
+      const g = ctx.createLinearGradient(0, H * 0.3, 0, H);
+      g.addColorStop(0, T.soil[0]); g.addColorStop(1, T.soil[1]);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, H);
+      for (let sx = 0; sx <= W + 4; sx += 4) ctx.lineTo(sx, surfY(sx + off));
+      ctx.lineTo(W + 4, H); ctx.fill();
+
+      // batu-batu di dalam tanah
+      const s0 = Math.floor((off - 20) / 38), s1 = Math.floor((off + W + 20) / 38);
+      for (let i = s0; i <= s1; i++) {
+        const wx = i * 38 + hash(i) * 30, sy = surfY(wx) + 26 + hash(i + 11) * 150;
+        if (sy < H) { ctx.fillStyle = hash(i + 5) > 0.5 ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.18)'; ctx.beginPath(); ctx.ellipse(wx - off, sy, 4 + hash(i + 2) * 6, 3 + hash(i + 4) * 4, 0, 0, 7); ctx.fill(); }
+      }
+
+      // rumput + jalan tanah
+      ctx.lineJoin = 'round';
+      ctx.beginPath(); for (let sx = 0; sx <= W + 4; sx += 4) { const y = surfY(sx + off); sx ? ctx.lineTo(sx, y) : ctx.moveTo(sx, y); }
+      ctx.strokeStyle = T.grass; ctx.lineWidth = 16; ctx.stroke();
+      ctx.beginPath(); for (let sx = 0; sx <= W + 4; sx += 4) { const y = surfY(sx + off) + 3; sx ? ctx.lineTo(sx, y) : ctx.moveTo(sx, y); }
+      ctx.strokeStyle = T.road; ctx.lineWidth = 7; ctx.stroke();
+    }
+
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -404,22 +489,7 @@
         ctx.fill();
       }
 
-      // --- LAYER 2: Gambar Gabungan (Sawit + Jalan + Tanah) ---
-      if (assets.bgForeground.complete && assets.bgForeground.src) {
-        const imgRatio = assets.bgForeground.width / assets.bgForeground.height;
-        const layerHeight = canvas.height * 0.7;
-        const layerWidth = layerHeight * imgRatio;
-        const layerY = canvas.height - layerHeight;
-        
-        const fgOffset = -(worldX * 1.0) % layerWidth;
-
-        for (let x = fgOffset - layerWidth; x < canvas.width + layerWidth; x += layerWidth) {
-          ctx.drawImage(assets.bgForeground, x, layerY, layerWidth, layerHeight);
-        }
-      } else {
-        ctx.fillStyle = '#542d10';
-        ctx.fillRect(0, canvas.height - 150, canvas.width, 150);
-      }
+      drawGround();
 
       // Top Meter Bar
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
