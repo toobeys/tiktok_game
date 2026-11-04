@@ -167,12 +167,12 @@
       <h2 style="font-size: 1rem; margin-bottom: 10px;">Upload Aset Gambar (3-Layer Parallax)</h2>
       <div class="asset-uploader-grid">
         <div class="asset-item">
-          <label>1. Layer Belakang (Pemandangan Gunung/Langit)</label>
+          <label>1. Layer Belakang (Pemandangan Gunung/Langit - Fullscreen)</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'bgFar')">
           <div class="preview-box"><img id="prev_bgFar"></div>
         </div>
         <div class="asset-item">
-          <label>2. Layer Tengah (Pepohonan/Pinggir Jalan)</label>
+          <label>2. Layer Tengah (Pohon Sawit Landscape PNG Transparan)</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'bgMid')">
           <div class="preview-box"><img id="prev_bgMid"></div>
         </div>
@@ -387,7 +387,7 @@
       if (bannerTimer > 0) bannerTimer--;
     }
 
-    // DRAW PALM TREE PROCEDURAL (Dipakai jika bgMid kosong)
+    // DRAW PALM TREE PROCEDURAL (Fallback jika bgMid kosong)
     function drawPalmTree(x, y, scale = 1) {
       ctx.save();
       ctx.translate(x, y);
@@ -424,11 +424,12 @@
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // --- LAPISAN 1: Paling Belakang (Gunung/Langit - Kecepatan 10%) ---
+      // --- LAPISAN 1: Paling Belakang (Gunung/Langit - FULLSCREEN, Kecepatan 10%) ---
       if (assets.bgFar.complete && assets.bgFar.src) {
-        const bgFarOffset = -(worldX * 0.1) % canvas.width;
-        ctx.drawImage(assets.bgFar, bgFarOffset, 0, canvas.width, canvas.height);
-        ctx.drawImage(assets.bgFar, bgFarOffset + canvas.width, 0, canvas.width, canvas.height);
+        const bgFarWidth = canvas.width;
+        const bgFarOffset = -(worldX * 0.1) % bgFarWidth;
+        ctx.drawImage(assets.bgFar, bgFarOffset, 0, bgFarWidth, canvas.height);
+        ctx.drawImage(assets.bgFar, bgFarOffset + bgFarWidth, 0, bgFarWidth, canvas.height);
       } else {
         const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         skyGrad.addColorStop(0, '#0284c7');
@@ -446,11 +447,22 @@
         ctx.fill();
       }
 
-      // --- LAPISAN 2: Tengah (Pohon/Pemandangan Jalan - Kecepatan 40%) ---
+      // --- LAPISAN 2: Tengah (Pepohonan Sawit LANDSCAPE - Tidak Fullscreen, Kecepatan 40%) ---
       if (assets.bgMid.complete && assets.bgMid.src) {
-        const bgMidOffset = -(worldX * 0.4) % canvas.width;
-        ctx.drawImage(assets.bgMid, bgMidOffset, 0, canvas.width, canvas.height);
-        ctx.drawImage(assets.bgMid, bgMidOffset + canvas.width, 0, canvas.width, canvas.height);
+        // Menjaga rasio landscape agar gambar tidak tertarik melar ke atas
+        const imgRatio = assets.bgMid.width / assets.bgMid.height;
+        // Atur tinggi layer mid sekitar 45% dari tinggi canvas
+        const midHeight = canvas.height * 0.45;
+        const midWidth = midHeight * imgRatio;
+        
+        // Posisikan bagian bawah gambar sawit persis di dekat garis jalanan (terrain)
+        const midY = canvas.height - midHeight - 90;
+        const bgMidOffset = -(worldX * 0.4) % midWidth;
+
+        // Render berulang (tile) secara horizontal tanpa memotong aspek rasio
+        for (let x = bgMidOffset - midWidth; x < canvas.width + midWidth; x += midWidth) {
+          ctx.drawImage(assets.bgMid, x, midY, midWidth, midHeight);
+        }
       } else {
         // Fallback Pohon Sawit Prosedural
         const sawitSpacing = 160;
@@ -463,7 +475,7 @@
         }
       }
 
-      // --- LAPISAN 3: Depan (Medan / Tekstur Tanah Bergelombang) ---
+      // --- LAPISAN 3: Depan (Tekstur Medan / Jalan Bergelombang) ---
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
