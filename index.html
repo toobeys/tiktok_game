@@ -261,13 +261,21 @@
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
-    // --- GELOMBANG LEBIH EKSTREM & PANJANG (DISESUAIKAN DENGAN POSISI MOBIL) ---
+    // --- JALUR JALAN MENGIKUTI GAMBAR LAYER 2 (layer2_sawit_jalan.png) ---
+    // Angka di bawah = bentuk jalan di gambar (dalam pecahan tinggi gambar).
+    // Gambar & kode harus kembar; kalau ganti gambar, angka ini ikut diganti.
+    const ROAD = { c0: 0.62996, a1: 0.05952, a2: 0.01984, phi: 1.2, ratio: 3.4384, wheelDrop: 23 };
+
     function getTerrainHeight(x) {
       const layerHeight = canvas.height * 0.7;
       const layerY = canvas.height - layerHeight;
-      const roadBaseline = layerY + (layerHeight * 0.42);
-      // Frekuensi diperpanjang (0.0015 & 0.004) dan amplitudo dibuat lebih ekstrem (65 & 25)
-      return Math.sin(x * 0.0015) * 65 + Math.sin(x * 0.004) * 25 + roadBaseline;
+      const img = assets.bgForeground;
+      const ratio = (img.complete && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : ROAD.ratio;
+      const layerWidth = layerHeight * ratio;
+      // +120 = posisi layar mobil, supaya sejajar dengan gambar yang di-scroll
+      const t = ((x + 120) / layerWidth) * Math.PI * 2;
+      const f = ROAD.c0 + ROAD.a1 * Math.sin(t) + ROAD.a2 * Math.sin(2 * t + ROAD.phi);
+      return layerY + layerHeight * f - ROAD.wheelDrop;
     }
 
     function getTerrainAngle(x) {
