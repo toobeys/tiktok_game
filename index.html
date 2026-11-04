@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MBG Racing - 3 Layer Parallax Sawit</title>
+  <title>MBG Racing - 2 Layer Parallax Sawit</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -161,48 +161,43 @@
     </div>
   </div>
 
-  <!-- Modal Asset Manager 3 Layer -->
+  <!-- Modal Asset Manager -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <h2 style="font-size: 1rem; margin-bottom: 10px;">Upload Aset Gambar (3-Layer Parallax)</h2>
+      <h2 style="font-size: 1rem; margin-bottom: 10px;">Upload Aset Gambar Kustom</h2>
       <div class="asset-uploader-grid">
         <div class="asset-item">
-          <label>1. Layer Belakang (Pemandangan Gunung/Langit - Fullscreen)</label>
+          <label>1. Layer Belakang (Gunung/Langit - Fullscreen)</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'bgFar')">
           <div class="preview-box"><img id="prev_bgFar"></div>
         </div>
         <div class="asset-item">
-          <label>2. Layer Tengah (Pohon Sawit Landscape PNG Transparan)</label>
-          <input type="file" accept="image/*" onchange="uploadAsset(event, 'bgMid')">
-          <div class="preview-box"><img id="prev_bgMid"></div>
+          <label>2. Layer Depan (Gabungan Sawit + Jalan + Tanah PNG)</label>
+          <input type="file" accept="image/*" onchange="uploadAsset(event, 'bgForeground')">
+          <div class="preview-box"><img id="prev_bgForeground"></div>
         </div>
         <div class="asset-item">
-          <label>3. Layer Depan (Tekstur Medan/Tanah)</label>
-          <input type="file" accept="image/*" onchange="uploadAsset(event, 'ground')">
-          <div class="preview-box"><img id="prev_ground"></div>
-        </div>
-        <div class="asset-item">
-          <label>4. Bodi Gran Max (PNG Transparan)</label>
+          <label>3. Bodi Gran Max (PNG Transparan)</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'carBody')">
           <div class="preview-box"><img id="prev_carBody"></div>
         </div>
         <div class="asset-item">
-          <label>5. Roda Mobil (PNG Transparan)</label>
+          <label>4. Roda Mobil (PNG Transparan)</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'wheel')">
           <div class="preview-box"><img id="prev_wheel"></div>
         </div>
         <div class="asset-item">
-          <label>6. Mobil Angkot</label>
+          <label>5. Mobil Angkot</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'angkot')">
           <div class="preview-box"><img id="prev_angkot"></div>
         </div>
         <div class="asset-item">
-          <label>7. Meteor Api (PNG)</label>
+          <label>6. Meteor Api (PNG)</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'meteor')">
           <div class="preview-box"><img id="prev_meteor"></div>
         </div>
         <div class="asset-item">
-          <label>8. Truk Sound Horeg</label>
+          <label>7. Truk Sound Horeg</label>
           <input type="file" accept="image/*" onchange="uploadAsset(event, 'truck')">
           <div class="preview-box"><img id="prev_truck"></div>
         </div>
@@ -228,8 +223,7 @@
 
     const assets = {
       bgFar: new Image(),
-      bgMid: new Image(),
-      ground: new Image(),
+      bgForeground: new Image(),
       carBody: new Image(),
       wheel: new Image(),
       angkot: new Image(),
@@ -237,19 +231,12 @@
       truck: new Image()
     };
 
-    let groundPattern = null;
-
     function loadSavedAssets() {
       const saved = JSON.parse(localStorage.getItem('mbg_racing_assets') || '{}');
       Object.keys(assets).forEach(key => {
         if (saved[key]) {
           assets[key].src = saved[key];
           document.getElementById(`prev_${key}`).src = saved[key];
-          if (key === 'ground') {
-            assets[key].onload = () => {
-              groundPattern = ctx.createPattern(assets.ground, 'repeat');
-            };
-          }
         }
       });
     }
@@ -264,12 +251,6 @@
           const saved = JSON.parse(localStorage.getItem('mbg_racing_assets') || '{}');
           saved[key] = evt.target.result;
           localStorage.setItem('mbg_racing_assets', JSON.stringify(saved));
-          
-          if (key === 'ground') {
-            assets.ground.onload = () => {
-              groundPattern = ctx.createPattern(assets.ground, 'repeat');
-            };
-          }
         };
         reader.readAsDataURL(file);
       }
@@ -277,11 +258,10 @@
 
     function clearAssets() {
       localStorage.removeItem('mbg_racing_assets');
-      groundPattern = null;
       Object.keys(assets).forEach(key => { assets[key].src = ''; document.getElementById(`prev_${key}`).src = ''; });
     }
 
-    // TERRAIN MATH GENERATOR
+    // TERRAIN MATH GENERATOR (Untuk kalkulasi pergerakan & suspensi mobil)
     function getTerrainHeight(x) {
       return Math.sin(x * 0.003) * 45 + Math.sin(x * 0.008) * 20 + (canvas.height - 130);
     }
@@ -387,44 +367,10 @@
       if (bannerTimer > 0) bannerTimer--;
     }
 
-    // DRAW PALM TREE PROCEDURAL (Fallback jika bgMid kosong)
-    function drawPalmTree(x, y, scale = 1) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.scale(scale, scale);
-
-      ctx.fillStyle = '#78350f';
-      ctx.beginPath();
-      ctx.moveTo(-8, 0);
-      ctx.lineTo(-5, -80);
-      ctx.lineTo(5, -80);
-      ctx.lineTo(8, 0);
-      ctx.fill();
-
-      ctx.save();
-      ctx.translate(0, -80);
-      ctx.strokeStyle = '#15803d';
-      ctx.lineWidth = 4;
-      
-      const angles = [-2.2, -1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8, 2.2];
-      angles.forEach(ang => {
-        ctx.save();
-        ctx.rotate(ang);
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.quadraticCurveTo(25, -20, 50, -10);
-        ctx.stroke();
-        ctx.restore();
-      });
-      ctx.restore();
-
-      ctx.restore();
-    }
-
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // --- LAPISAN 1: Paling Belakang (Gunung/Langit - FULLSCREEN, Kecepatan 10%) ---
+      // --- LAYER 1: Gunung & Langit (Paling Belakang - Fullscreen) ---
       if (assets.bgFar.complete && assets.bgFar.src) {
         const bgFarWidth = canvas.width;
         const bgFarOffset = -(worldX * 0.1) % bgFarWidth;
@@ -438,7 +384,6 @@
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Fallback Gunung
         ctx.fillStyle = '#1e3a8a';
         ctx.beginPath();
         ctx.moveTo(-50, canvas.height - 100);
@@ -447,70 +392,23 @@
         ctx.fill();
       }
 
-      // --- LAPISAN 2: Tengah (Pepohonan Sawit LANDSCAPE - Tidak Fullscreen, Kecepatan 40%) ---
-      if (assets.bgMid.complete && assets.bgMid.src) {
-        // Menjaga rasio landscape agar gambar tidak tertarik melar ke atas
-        const imgRatio = assets.bgMid.width / assets.bgMid.height;
-        // Atur tinggi layer mid sekitar 45% dari tinggi canvas
-        const midHeight = canvas.height * 0.45;
-        const midWidth = midHeight * imgRatio;
+      // --- LAYER 2: Gabungan Sawit + Jalan + Medan Tanah (Seamless Loop) ---
+      if (assets.bgForeground.complete && assets.bgForeground.src) {
+        const imgRatio = assets.bgForeground.width / assets.bgForeground.height;
+        const layerHeight = canvas.height * 0.7; // Tinggi layer 70% canvas
+        const layerWidth = layerHeight * imgRatio;
+        const layerY = canvas.height - layerHeight; // Nempel di bagian bawah canvas
         
-        // Posisikan bagian bawah gambar sawit persis di dekat garis jalanan (terrain)
-        const midY = canvas.height - midHeight - 90;
-        const bgMidOffset = -(worldX * 0.4) % midWidth;
+        const fgOffset = -(worldX * 0.8) % layerWidth;
 
-        // Render berulang (tile) secara horizontal tanpa memotong aspek rasio
-        for (let x = bgMidOffset - midWidth; x < canvas.width + midWidth; x += midWidth) {
-          ctx.drawImage(assets.bgMid, x, midY, midWidth, midHeight);
+        for (let x = fgOffset - layerWidth; x < canvas.width + layerWidth; x += layerWidth) {
+          ctx.drawImage(assets.bgForeground, x, layerY, layerWidth, layerHeight);
         }
       } else {
-        // Fallback Pohon Sawit Prosedural
-        const sawitSpacing = 160;
-        const startIdx = Math.floor((worldX - 200) / sawitSpacing);
-        for (let i = startIdx - 1; i < startIdx + 5; i++) {
-          const treeWorldX = i * sawitSpacing;
-          const screenTreeX = treeWorldX - (worldX * 0.4) + 120;
-          const treeY = getTerrainHeight(treeWorldX) - 5;
-          drawPalmTree(screenTreeX, treeY, 0.85);
-        }
+        // Fallback jika belum upload gambar gabungan
+        ctx.fillStyle = '#542d10';
+        ctx.fillRect(0, canvas.height - 150, canvas.width, 150);
       }
-
-      // --- LAPISAN 3: Depan (Tekstur Medan / Jalan Bergelombang) ---
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(0, canvas.height);
-      for (let screenX = 0; screenX <= canvas.width; screenX += 4) {
-        const actualWorldX = worldX - 120 + screenX;
-        const h = getTerrainHeight(actualWorldX);
-        ctx.lineTo(screenX, h);
-      }
-      ctx.lineTo(canvas.width, canvas.height);
-
-      if (assets.ground.complete && assets.ground.src) {
-        const groundOffsetX = -(worldX % assets.ground.width);
-        ctx.save();
-        ctx.translate(groundOffsetX, 0);
-        if (!groundPattern) groundPattern = ctx.createPattern(assets.ground, 'repeat');
-        ctx.fillStyle = groundPattern;
-        ctx.fill();
-        ctx.restore();
-      } else {
-        const dirtGrad = ctx.createLinearGradient(0, canvas.height - 200, 0, canvas.height);
-        dirtGrad.addColorStop(0, '#542d10');
-        dirtGrad.addColorStop(0.5, '#3b1d07');
-        dirtGrad.addColorStop(1, '#241002');
-        ctx.fillStyle = dirtGrad;
-        ctx.fill();
-      }
-
-      // Garis Rumput Atas Jalan
-      ctx.strokeStyle = '#15803d';
-      ctx.lineWidth = 8;
-      ctx.stroke();
-      ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-      ctx.restore();
 
       // Top Meter Bar
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
@@ -524,7 +422,7 @@
       ctx.fillText(`🏁 ${distance} m / 30.000 m`, canvas.width / 2, 38);
       ctx.textAlign = 'left';
 
-      // Render Gran Max Van & Roda
+      // Render Mobil & Roda
       const screenCarX = 120;
       ctx.save();
       ctx.translate(screenCarX, carY - 20);
@@ -546,7 +444,7 @@
       drawWheel(35, 16, 13, wheelSpin);
       ctx.restore();
 
-      // Render Active Gift Events
+      // Render Gift Events
       activeEvents.forEach(ev => {
         const screenEvX = ev.x - worldX + 120;
         const evY = getTerrainHeight(ev.x);
@@ -577,7 +475,7 @@
         }
       });
 
-      // Render Explosions
+      // Particles Explosion
       particles.forEach(p => {
         ctx.fillStyle = p.color;
         ctx.beginPath();
